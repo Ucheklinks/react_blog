@@ -26,6 +26,8 @@ const port = 3000;
 
 env.config();
 
+// ! create remote git repo
+
 const db = new pg.Client({
   user: process.env.PG_USER,
   host: process.env.PG_HOST,
@@ -41,7 +43,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
-  
 });
 
 var ApiArray = [];
@@ -50,11 +51,8 @@ var ApiArray = [];
 
 app.get("/api/articles", async (req, res) => {
   // TODO function to call every single blog article from the db here
-  const AllArticles= await GetAllArticles(db);
+  const AllArticles = await GetAllArticles(db);
   res.json(AllArticles);
-
-
- 
 });
 
 // * post new articles
