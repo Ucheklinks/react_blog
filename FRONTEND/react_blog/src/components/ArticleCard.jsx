@@ -10,34 +10,17 @@ import Typography from "@mui/material/Typography";
 import { useState } from "react";
 import { FetchSpecificArticle } from "../libs/FetchSpecificArticle.js";
 
-function ArticleCard() {
-  const [ClickedArticleTitle, setClickedArticleTitle] = useState(false);
-
-  function isClicked(event) {
-    setClickedArticleTitle(true);
-
-    if (ClickedArticleTitle) {
-      let ArticleTitle = event.target.textContent;
-      FetchSpecificArticle(ArticleTitle);
-    }
-  }
+function ArticleCard(props) {
   return (
     <ThemeProvider theme={theme}>
       <Card
         variant="outlined"
         sx={{
           border: 1,
-          borderColor: theme.palette.customGrey.light,
-          width: 1 / 3,
+          borderColor: theme.palette.customBlack,
         }}
       >
-        <CardHeader
-          title={
-            <a href="#your-anchor" onClick={isClicked}>
-              First Post
-            </a>
-          }
-        />
+        <CardHeader title={<a href="#your-anchor">{props.title}</a>} />
 
         <Box
           sx={{
@@ -47,11 +30,17 @@ function ArticleCard() {
           <CardMedia
             component="img"
             height="194"
-            image="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQnk8r084tMrxKInJJt70UcVrl_blksy6VpqDVCxPwvc4WuchML7iBI7ATLTscYmQgW_t01eYmLDB9SHW1Y2VQCPsm9nl-dmx9uKyYDqkm_bA"
+            // image="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQnk8r084tMrxKInJJt70UcVrl_blksy6VpqDVCxPwvc4WuchML7iBI7ATLTscYmQgW_t01eYmLDB9SHW1Y2VQCPsm9nl-dmx9uKyYDqkm_bA"
+            // image = {props.image}
             alt="Paella dish"
           />
         </Box>
-        <Typography component="p">date article was written</Typography>
+
+        <Box>
+          <Typography component="p">{props.content}</Typography>
+        </Box>
+
+        <Typography component="p">{props.date}</Typography>
       </Card>
     </ThemeProvider>
   );

@@ -1,6 +1,13 @@
-function HeroText(){
-    return <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </p>
+import Typography from "@mui/material/Typography";
+function HeroText() {
+  return (
+    <Typography component="p">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+      commodo consequat.{" "}
+    </Typography>
+  );
 }
-
 
 export default HeroText;

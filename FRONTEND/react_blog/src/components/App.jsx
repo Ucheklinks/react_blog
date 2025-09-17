@@ -1,22 +1,24 @@
 import { useState } from "react";
-import { useEffect } from "react";
+import { ShowBlogArticles } from "./ShowBlogArticles.jsx";
 import "./App.css";
-import { FetchAllArticles } from "../libs/FetchAllArticles.js";
-
-import HeroText from "./HeroText.jsx";
-import Header from "./Header.jsx";
-import ArticleCard from "./ArticleCard.jsx";
+import { useEffect } from "react";
+import { Layout } from "../pages/Layout.jsx";
+import { About } from "../pages/About.jsx";
+import { Home } from "../pages/Home.jsx";
+import { Routes, Route } from "react-router";
+import { Contact } from "../pages/Contact.jsx";
+import { SignedIn } from "../pages/SignedIn.jsx";
 
 function App() {
-  useEffect(() => {
-    const BlogArticles = FetchAllArticles();
-  });
   return (
-    <div>
-      <Header />
-      <HeroText />
-      {/* <ArticleCard /> this guy will be passed props and the blanks will be filled with the data that came from the backend */}
-    </div>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<Home />}></Route>
+        <Route path="About" element={<About />} />
+        <Route path="Contact" element={<Contact />} />
+        <Route path="Auth" element={<SignedIn />} />
+      </Route>
+    </Routes>
   );
 }
 

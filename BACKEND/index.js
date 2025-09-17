@@ -1,7 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import axios from "axios";
-import env from "dotenv";
+import dotenv from "dotenv";
 import cors from "cors";
 import pg from "pg";
 import passport from "passport";
@@ -9,6 +9,7 @@ import GoogleStrategy from "passport-google-oauth2";
 import session from "express-session";
 import multer from "multer";
 import convert from "heic-convert";
+
 import {
   GetAllArticles,
   GetSpecificArticle,
@@ -16,10 +17,10 @@ import {
   EditSpecificArticle,
   DeleteSpecificArticle,
 } from "./functions/articlesFunctions.js";
-import {
-  GoogleRedirect,
-  CheckAuthenticationStatus,
-} from "./functions/usersFunctions.js";
+import { AddUser } from "./functions/usersFunctions.js";
+import { OAuth2Client } from "google-auth-library";
+import { GenerateToken } from "./functions/usersFunctions.js";
+import { FrontEndData } from "./functions/usersFunctions.js";
 
 const app = express();
 const port = 3000;
@@ -28,24 +29,13 @@ app.use(
     origin: "http://localhost:5173", // Your React app's address
   })
 );
-
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24, // 24 hours
-    },
-  })
-);
+dotenv.config();
 
-app.use(passport.initialize());
-app.use(passport.session());
-
-env.config();
+// Google OAuth client
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const db = new pg.Client({
   user: process.env.PG_USER,
@@ -66,11 +56,34 @@ var ApiArray = [];
 
 // * get all articles
 
+// JWT verification middleware to ensure user can access protected route
+const verifyJwt = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  console.log("auth header");
+  console.log(authHeader);
+
+  if (!authHeader) {
+    req.isAuthenticated = false;
+    return res.status(401).json({ error: "No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1]; // Bearer <jwt>
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = payload; // attach user info
+    req.isAuthenticated = true; // emulate Passport
+    next();
+  } catch (err) {
+    req.isAuthenticated = false;
+    return res.status(401).json({ error: "Invalid token" });
+  }
+};
+
 app.get("/api/articles", async (req, res) => {
   // TODO function to call every single blog article from the db here
   const AllArticles = await GetAllArticles(db);
+
   res.json({
-    message: "user is not authenticated",
     data: AllArticles,
   });
 });
@@ -79,8 +92,7 @@ app.get("/api/articles", async (req, res) => {
 
 app.post("/api/articles", (req, res) => {
   // TODO function to post a new article to the db here
-  // const AllArticles = PostArticle(db);
-  // console.log(AllArticles);
+  console.log(req.body);
 });
 
 // * get a particular article
@@ -88,7 +100,9 @@ app.post("/api/articles", (req, res) => {
 app.get("/api/articles/:id", (req, res) => {
   // TODO function to get a particular article from the db here
   // ** might pass req.params.slug or whatever into function here
+
   var blog_id = req.params.id;
+  console.log(blog_id);
 
   GetSpecificArticle(blog_id, db);
 });
@@ -109,8 +123,27 @@ app.delete("/api/articles/:id", (req, res) => {
   // DeleteSpecificArticle(title);
 });
 
-app.get("/auth/google", GoogleRedirect());
-app.get("/auth/google/signedin", CheckAuthenticationStatus());
+app.post("/api/auth/google", async (req, res) => {
+  const { token } = req.body;
+  // Step 1: Verify Google ID token
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload(); // payload contains email, name, sub
+
+  // Step 2: check and verify if user is in db
+
+  const userInfo = await AddUser(payload, db);
+
+  // Step 3: create backend JWT
+
+  const BackendToken = GenerateToken(userInfo);
+
+  // Step 4: create backend JWT to frontend
+  FrontEndData(BackendToken, payload, res);
+});
+// app.get("/auth/google/signedin", CheckAuthenticationStatus());
 
 app.get("/signedin", async (req, res) => {
   // TODO function to call every single blog article from the db here

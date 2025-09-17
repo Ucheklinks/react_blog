@@ -1,8 +1,7 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from "@mui/material/styles";
 
 let theme = createTheme({
   palette: {
-   
     tonalOffset: 0.2,
     contrastThreshold: 3,
   },
@@ -10,12 +9,11 @@ let theme = createTheme({
 
 theme = createTheme(theme, {
   palette: {
-    // Create a custom "salmon" color, and let MUI auto-generate light/dark/contrastText
-    customGrey: theme.palette.augmentColor({
+    customBlack: theme.palette.augmentColor({
       color: {
-        main: '#607d8b', // This is your base color
+        main: "#0F0E0E", // This is your base color
       },
-      name: 'customGrey', // Needed for internal purposes like CSS class generation
+      name: "customBlack", // Needed for internal purposes like CSS class generation
     }),
   },
 });

@@ -29,7 +29,7 @@ export async function PostArticle(dbclient) {
 
 export async function GetSpecificArticle(id, dbclient) {
   try {
-    const result = await db.query(`SELECT * FROM posts WHERE id = $1`, [
+    const result = await dbclient.query(`SELECT * FROM posts WHERE id = $1`, [
       title,
     ]);
   } catch (err) {

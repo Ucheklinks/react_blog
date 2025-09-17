@@ -1,12 +1,21 @@
 import axios from "axios";
 
-export async function FetchAllArticles() {
+async function FetchAllArticles() {
+  let BlogArray = [];
+
+  let FinalBlogArray;
   try {
     const response = await axios.get(`http://localhost:3000/api/articles`);
-    console.log("front end fetch all articlles")
-    console.log(response.data);
-    return response.data;
+
+    BlogArray = response.data;
+
+    FinalBlogArray = BlogArray.data;
+    console.log(FinalBlogArray);
+    console.log("function called");
+    return FinalBlogArray;
   } catch (error) {
     console.log(error.message);
   }
 }
+
+export { FetchAllArticles };

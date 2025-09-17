@@ -1,64 +1,54 @@
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth2";
-import env from "dotenv";
-env.config();
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+dotenv.config();
 // export function CreateUser() {}
 
 // export function AuthenticateUser() {}
 
 // export function DeleteUser() {}
 
-const GoogleRedirect = () => {
-  return passport.authenticate("google", {
-    scope: ["profile", "email"],
-    prompt: "select_account",
-  });
-};
+export async function AddUser(userPayload, dbclient) {
+  let userInfo;
+  try {
+    // console.log(profile);
+    const result = await dbclient.query(
+      "SELECT * FROM users WHERE email = $1",
+      [userPayload.email]
+    );
+    if (result.rows.length === 0) {
+      const newUser = await dbclient.query(
+        "INSERT INTO users (email, username, password_hash) VALUES ($1,$2, $3 ) RETURNING *",
+        [userPayload.email, userPayload.given_name, "google"]
+      );
 
-const CheckAuthenticationStatus = () => {
-  return passport.authenticate("google", {
-    successRedirect: "/signedin",
-    failureRedirect: "/api/articles",
-  });
-};
-
-passport.use(
-  "google",
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/google/signedin",
-      userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
-    },
-    async (accessToken, refreshToken, profile, cb) => {
-      try {
-        // console.log(profile);
-        const result = await db.query("SELECT * FROM users WHERE email = $1", [
-          profile.email,
-        ]);
-        if (result.rows.length === 0) {
-          const newUser = await db.query(
-            "INSERT INTO users (email, password) VALUES ($1, $2)",
-            [profile.email, "google"]
-          );
-          return cb(null, newUser.rows[0]);
-        } else {
-          return cb(null, result.rows[0]);
-        }
-      } catch (err) {
-        return cb(err);
-      }
+      userInfo = newUser;
+    } else {
+      const newUser = await dbclient.query(
+        "SELECT * FROM users WHERE email = $1;",
+        [userPayload.email]
+      );
+      userInfo = newUser;
     }
-  )
-);
+  } catch (err) {
+    return err;
+  }
 
-passport.serializeUser((user, cb) => {
-  cb(null, user);
-});
+  return userInfo;
+}
 
-passport.deserializeUser((user, cb) => {
-  cb(null, user);
-});
+export function GenerateToken(userInfo) {
+  const appToken = jwt.sign(
+    { id: userInfo.rows[0].id, email: userInfo.rows[0].email },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+  return appToken;
+}
 
-export { GoogleRedirect, CheckAuthenticationStatus };
+export function FrontEndData(appJwt, payload, response) {
+
+
+  response.json({ jwt: appJwt, user: payload });
+}
