@@ -58,6 +58,8 @@ var ApiArray = [];
 
 // JWT verification middleware to ensure user can access protected route
 const verifyJwt = (req, res, next) => {
+
+  console.log(req.body);
   const authHeader = req.headers.authorization;
   console.log("auth header");
   console.log(authHeader);
@@ -125,12 +127,14 @@ app.delete("/api/articles/:id", (req, res) => {
 
 app.post("/api/auth/google", async (req, res) => {
   const { token } = req.body;
+
   // Step 1: Verify Google ID token
   const ticket = await client.verifyIdToken({
     idToken: token,
     audience: process.env.GOOGLE_CLIENT_ID,
   });
   const payload = ticket.getPayload(); // payload contains email, name, sub
+  console.log(payload);
 
   // Step 2: check and verify if user is in db
 
